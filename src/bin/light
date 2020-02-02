@@ -23,7 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-require __DIR__ . '/../../vendor/autoload.php';
+$dir = __DIR__.'/..';
+
+if (!file_exists($dir.'/autoload.php')) {
+    $dir = __DIR__.'/../vendor';
+}
+
+if (!file_exists($dir.'/autoload.php')) {
+    $dir = __DIR__.'/../../..';
+}
+
+if (!file_exists($dir.'/autoload.php')) {
+    echo 'Autoload not found.';
+    exit(1);
+}
+
+require $dir.'/autoload.php';
+
 
 $app = new Light\App();
 
