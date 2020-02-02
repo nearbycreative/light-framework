@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 /**
  * MIT License
@@ -22,21 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+require __DIR__ . '/../../vendor/autoload.php';
 
-/**
- * Include these methods in the global namespace for convenience
- */
-namespace {
+$app = new Light\App();
 
-    use Illuminate\Http\Request;
+//@todo Flush out CLI
 
-    /**
-     * Get the request object
-     *
-     * @return \Illuminate\Http\Request
-     */
-    function request()
-    {
-        return Request::createFromGlobals();
-    }
-}
+
+
