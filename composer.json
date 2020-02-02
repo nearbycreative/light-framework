@@ -1,0 +1,33 @@
+{
+    "name": "nearbycreative/light-framework",
+    "type": "library",
+    "description": "Nearby API makes it ridiculously easy to throw up a powerful JSON API",
+    "keywords": ["php" ,"framework", "api", "router", "orm", "eloquent"],
+    "homepage": "https://nearbycreative.com",
+    "license": "MIT",
+    "authors": [{
+        "name": "Chris Page",
+        "email": "chris@nearbycreative.com",
+        "homepage": "https://nearbycreative.com",
+        "role": "CTO"
+    }],
+    "autoload": {
+        "psr-4": {
+            "Light\\": "src/"
+        }
+    },
+    "require": {
+        "ext-json": "*",
+        "php": ">=7.2",
+        "nikic/fast-route": "^1.3",
+        "illuminate/http": "^6.13",
+        "illuminate/database": "^6.13"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "*"
+    },
+    "scripts": {
+        "test": "phpunit --colors=always"
+    },
+    "bin": ["bin/nearby"]
+}
