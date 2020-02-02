@@ -23,23 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-$dir = __DIR__.'/..';
 
-if (!file_exists($dir.'/autoload.php')) {
-    $dir = __DIR__.'/../vendor';
+
+/**
+ * Require composer autoload based on if we are deving or it's deployed as a package
+ */
+foreach ([
+        __DIR__ . '../../vendor/autoload.php', //development
+        __DIR__ . '/../../../../autoload.php' //standalone
+    ] as $file) {
+
+    if (file_exists($file)) {
+        require_once $file;
+        break;
+    }
 }
-
-if (!file_exists($dir.'/autoload.php')) {
-    $dir = __DIR__.'/../../..';
-}
-
-if (!file_exists($dir.'/autoload.php')) {
-    echo 'Autoload not found.';
-    exit(1);
-}
-
-require $dir.'/autoload.php';
-
 
 $app = new Light\App();
 
