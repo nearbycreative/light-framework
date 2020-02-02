@@ -1,7 +1,7 @@
 {
     "name": "nearbycreative/light-framework",
     "type": "library",
-    "description": "Nearby API makes it ridiculously easy to throw up a powerful JSON API",
+    "description": "Light Framework makes it ridiculously easy to throw up a powerful JSON API",
     "keywords": ["php" ,"framework", "api", "router", "orm", "eloquent"],
     "homepage": "https://nearbycreative.com",
     "license": "MIT",

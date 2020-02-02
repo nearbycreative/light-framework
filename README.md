@@ -1,5 +1,29 @@
 # Quickstart
 
+Note, this package is still in development.  In order to run the following from scratch example, you must first do a composer init, 
+and edit your composer.json file to minimum-stability="dev".
+
+    composer init 
+    
+If you have an existing project you want to try this on, edit your composer.json minimum-stability:
+
+    {
+        "name": "yourcompany/yourproject",
+        "authors": [
+            {
+                "name": "Your name",
+                "email": "your@email.com"
+            }
+        ],
+        "minimum-stability": "dev",
+        "require": {
+
+        }
+    }
+
+Then you can install with:
+
+
     composer require nearbycreative/light-framework
 
 #### Example Directory structure
