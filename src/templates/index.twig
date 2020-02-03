@@ -7,12 +7,6 @@ $loader->addPsr4('App\\', __DIR__ . '/../app/');
 $app = new \Light\App();
 $route = $app->routes;
 
-$route->get('/', Controller\Welcome::class . '@index');
-
-$route->get('/hello/{name}', function($name) {
-    return [
-        'hello' => $name
-    ];
-});
+require_once(__DIR__ . '/../config/routes.php');
 
 $app->run();

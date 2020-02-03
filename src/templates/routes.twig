@@ -1,0 +1,100 @@
+<?php
+/**
+ * Add routes to this file.
+ *
+ * By default, you can use the convention:  /[controller_name]/[action] to map your URLs
+ * directly to controller actions.  Or, you could put your API endpoints here in this file
+ * and not use controllers at all.  The choice is yours.
+ *
+ * Routes added to this file will take precedent over the controller convention.
+ *
+ * @var $route \Light\RouteCollector
+ */
+
+/**
+ * Example of mapping to a specific controller action
+ *
+ * This is useful if you want to break the controller convention or temporarily
+ * direct to a specific action or separate controller directory.
+ */
+$route->get('/', Controller\Welcome::class . '@index');
+
+/**
+ * Example redirect
+ */
+
+$route->redirect('/', 'https://google.com');
+
+/**
+ * Example of using a text URL placeholder
+ */
+$route->get('/article/{slug}', function($slug) {
+    //Logic to get article content
+
+    return [
+        'slug' => $slug,
+        'content' => "Lorem ipsum..."
+    ];
+});
+
+/**
+ * URL placeholder that matches numbers only
+ */
+$route->get('/user/{id:\d+}', function($id) {
+    //Logic to get user details
+
+    return [
+        'id' => $id,
+        'name' => 'John Doe'
+    ];
+});
+
+/**
+ * Multiple URL placeholders
+ */
+$route->get('/user/{user_id:\d+}/photo/{photo_id:\d+}', function($user_id, $photo_id) {
+    //Logic to get user and photo details
+
+    return [
+        'user_id' => $user_id,
+        'photo_id' => $photo_id
+     ];
+});
+
+/**
+ * Example POST request
+ */
+$route->post('/user/{id}', function ($user_id) {
+
+    Model\User::find($user_id);
+    $user->first_name = request()->input('first_name');
+    $user->save();
+
+    return [
+        'user_id' => $user_id,
+        'message' => 'User updated'
+    ];
+});
+
+/**
+* Example mapping to multiple HTTP verbs
+*/
+$route->map(['GET','POST'],'/user/{id}', function ($user_id) {
+
+    $is_updated = false;
+
+    Model\User::find($user_id);
+
+    if (request()->method() === 'POST') {
+        $user->first_name = request()->input('first_name');
+        $user->save();
+
+        $is_updated = true;
+    }
+
+    return [
+        'user_id' => $user_id,
+        'is_updated' => $is_updated,
+        'first_name' => $user->first_name,
+    ];
+});

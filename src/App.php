@@ -131,7 +131,7 @@ class App
     }
 
     /**
-     * Uses FastRoute methods to build
+     * Get route info based on the HTTP method provided and the URI
      *
      * @param $method
      * @param $uri
@@ -145,11 +145,70 @@ class App
     }
 
     /**
-     * Parses the URI, runs the corresponding route, and sends the response to the client
+     * Looks for a matching controller route first
+     * Then looks for a FastRoute, if one is found it overrides the controller route.
+     *
+     * This provides /[controller]/[action] paradigm as the default so that
+     * you don't have to manually create every route for every controller if
+     * you don't want to.
+     *
+     * @return array
      */
-    public function run() : void
+    private function detectControllerRoute()
+    {
+        $path = ucwords(request()->getPathInfo(), '/');
+        $parts = explode('/', ltrim($path, '/'));
+
+        $classPath = '\\App\\Controller\\';
+        if ($parts[0]) {
+            if (count($parts) === 1) {
+                $classPath .= $parts[0];
+            } elseif (count($parts) >= 2) {
+                $classPath .= implode('\\', $parts);
+            }
+        } else {
+            //it's the root URL, which we default to the Controller\Welcome@index
+            $classPath .= 'Welcome';
+        }
+
+        //Check if this is sub controller index
+        if (class_exists($classPath) && method_exists($classPath, 'index')) {
+            $handler = $classPath . '@index';
+            $this->routes->any(request()->getPathInfo(), $handler);
+        } else {
+            //It's not a sub controller index, the last segment may be an action, lets see if that exists
+            $parts = explode('\\', $classPath);
+            $action = array_pop($parts);
+            $classPath = implode('\\', $parts);
+
+            $handler = $classPath . '@' . $action;
+            if (class_exists($classPath) && method_exists($classPath, $action)) {
+                $this->routes->any(request()->getPathInfo(), $handler);
+            }
+        }
+
+        return $this->getRouteInfo(request()->method(), request()->getRequestUri());
+    }
+
+    /**
+     * Parses the URI, runs the corresponding route, and sends the response to the client
+     *
+     * Looks for a route closure first, if one is found, that will take precedent.
+     * If a route closure didn't exist, check if there is a controller route.
+     *
+     * This provides /[controller]/[action] paradigm as the default so that
+     * you don't have to manually create every route for every controller action if
+     * you don't want to.
+     *
+     * This also supports sub controllers.
+     */
+    public function run()
     {
         $routeInfo = $this->getRouteInfo(request()->method(), request()->getRequestUri());
+
+        if ($routeInfo[0] === \FastRoute\Dispatcher::NOT_FOUND) {
+            $routeInfo = $this->detectControllerRoute();
+        }
 
         if($routeInfo[0] === \FastRoute\Dispatcher::FOUND) {
             $handler = $routeInfo[1];
@@ -172,12 +231,14 @@ class App
             $response = [
                 'code' => 404,
                 'status' => 'error',
+                'time' => \Carbon\Carbon::now(),
                 'message' => 'Not found.'
             ];
         } elseif ($routeInfo[0] === \FastRoute\Dispatcher::METHOD_NOT_ALLOWED) {
             $response = [
                 'code' => 405,
                 'status' => 'error',
+                'time' => \Carbon\Carbon::now(),
                 'message' => 'Method not allowed.',
                 'allowedMethods' => $routeInfo[1]
             ];
@@ -185,6 +246,7 @@ class App
             $response = [
                 'code' => 500,
                 'status' => 'error',
+                'time' => \Carbon\Carbon::now(),
                 'message' => 'Unhandled response.'
             ];
         }

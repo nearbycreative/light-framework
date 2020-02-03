@@ -86,6 +86,18 @@ class RouteCollector extends \FastRoute\RouteCollector
         return $this;
     }
 
+    /**
+     * Adds an OPTIONS route to the collection
+     *
+     * This is simply an alias of $this->addRoute('OPTIONS', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function options($route, $handler)
+    {
+        $this->addRoute('OPTIONS', $route, $handler);
+    }
 
     /**
      * Redirect
