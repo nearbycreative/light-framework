@@ -167,7 +167,7 @@ The following docs are coming soon!
 * [Controllers](docs/controllers.md)
 * [Models](docs/models.md)
 * [Migrations](docs/migrations.md)
-* [Pagination](docs/migrations.md)
+* [Pagination](docs/pagination.md)
 * [Helpers](docs/helpers.md)
 * [Authentication](docs/authentication.md)
 * [Light Command Line Utility](docs/light_command.md)
