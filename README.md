@@ -1,6 +1,12 @@
-Light is a micro-framework for quickly spinning up APIs.  It can 
+Light is a micro-framework for quickly spinning up powerful APIs.  It can 
 be used both as a standalone framework or embedded into an existing
 application.
+
+Frameworks like Laravel and Symfony are powerful, but when you need to build out an 
+API, a web framework with the whole kitchen sink can over complicate with option overload.
+
+Light aims to use familiar open source technologies like Eloquent and Phinx, with simple paradigms like MVC
+to make building out APIs lightning fast. 
 
 # Requirements
 
@@ -20,7 +26,7 @@ running quickly!
     php light serve
     
     
-From here, you can visit http://localhost:8080 to see Light in action!
+That's it!  You can visit http://localhost:8080 to see Light in action!
  
 #### Directory structure
 
@@ -50,10 +56,10 @@ into an existing project, you probably don't want to run `light init`, but rathe
 
 ### Using route closures:
 
-Light Framework is a micro-framework for spinning up API's quickly.  If you wanted to, you could create your entire 
-application in a single file using closures:
+If you look at the generated _public/index.php_, you'll see it provided a few simple routes to start you off.  If you 
+wanted to, you could create your entire application in a single file using just route closures, ie:
 
-Example index.php:
+An example _index.php_:
 
 ```
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -103,7 +109,7 @@ You'll see the following output:
 }
 ```
 
-### Implementation using controllers
+### Using controllers
 
 Putting all your API endpoints in route closures works fine for small APIs.  Though, this can get 
 pretty narly, pretty quickly.  Another way to organize your API code is using _Light Controllers._
@@ -146,5 +152,26 @@ Use `php light serve` to test out your new API endpoint:
     
 
 Visit: http://localhost:8080/foo
+
+## Command Line Utility
+
+Try running `php light help` to learn about more things you can do with the command line script.
+
+
+# Learning more:
+
+The following docs are coming soon!
+
+* [Routing](docs/routing.md)
+* [Requests](docs/requests.md)
+* [Controllers](docs/controllers.md)
+* [Models](docs/models.md)
+* [Migrations](docs/migrations.md)
+* [Pagination](docs/migrations.md)
+* [Helpers](docs/helpers.md)
+* [Authentication](docs/authentication.md)
+* [Light Command Line Utility](docs/light_command.md)
+* [Embedding Light into existing projects](docs/embed.md)
+* [Using Light as a full MVC Web Framework too](docs/views.md)
 
 
