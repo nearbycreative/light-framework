@@ -144,7 +144,7 @@ class Console
             'app/Controller',
             'config',
             'database/migrations',
-            'databaase/seeds',
+            'database/seeds',
             'resources/views',
             'resources/sass',
             'resources/js',

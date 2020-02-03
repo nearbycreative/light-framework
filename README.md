@@ -1,92 +1,64 @@
-# Quickstart
+Light is a micro-framework for quickly spinning up APIs.  It can 
+be used both as a standalone framework or embedded into an existing
+application.
 
-Note, this package is still in development.  In order to run the following from scratch example, you must first do a composer init, 
-and edit your composer.json file to minimum-stability="dev".
+# Requirements
 
-    composer init 
+* php7.2+
+* A web server with `mod_rewrite` enabled
+
+# Quickstart a Fresh Project
+
+If you're starting your project from scratch, the following commands will get you up and 
+running quickly!
+
+    mkdir myproject && cd myproject
     
-If you have an existing project you want to try this on, edit your composer.json minimum-stability:
-
-    {
-        "name": "yourcompany/yourproject",
-        "authors": [
-            {
-                "name": "Your name",
-                "email": "your@email.com"
-            }
-        ],
-        "minimum-stability": "dev",
-        "require": {
-
-        }
-    }
-
-Then you can install with:
-
-
     composer require nearbycreative/light-framework
+    
+    ./vendor/bin/light init   
+    php light serve
+    
+    
+From here, you can visit http://localhost:8080 to see Light in action!
+ 
+#### Directory structure
 
-#### Example Directory structure
-
-For purpose of example we'll assume your application directory structure looks like this:
+`light init` creates the following directory structure: 
 
     app/
         controller/
+            Welcome.php
         model/
+    database/
+        migrations/
+        seeds/
     public/
         .htaccess
         index.php
-    composer.json
+    resources/
+        js/
+        sass/
+        views/
+    .env
+    light
     
+    
+Note, this is the default scaffolding to get a new application up and running quickly.  If you're including Light
+into an existing project, you probably don't want to run `light init`, but rather embed it.  [Learn how to embed Light in an existing application](docs/embed.md).  
 
-Note, you can use any directory structure you wish.
 
-#### composer.json and .htaccess
+### Using route closures:
 
-In order for the following examples to work, you'll need your composer.json to be able to
-autoload your files.  Make sure you have a PSR-4 autoload entry in your composer.json
-
-If you're working from scratch you can use this one:
-
-```
-{
-    "name": "yourcompany/name",
-    "autoload": {
-        "psr-4": {
-            "YourApp\\": "app/"
-        }
-    },
-    "require": {
-        "ext-json": "*",
-        "php": ">=7.2",
-        "nearbycreative/light-framework": "*"
-    }
-}
-```
-
-Light Framework uses mod_rewrite to route URLs to the correct actions.  
-Add this to your _.htaccess_ to route urls your app entry point.  
-
-```
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteCond %{REQUEST_URI}::$1 ^(/.+)/(.*)::\2$
-  RewriteRule ^(.*) - [E=BASE:%1]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteRule ^ index.php [QSA,L]
-</IfModule>
-```
-
-### Implement using closures:
-
-Light Framework is a micro-framework for spinning up API's quickly.  If you wanted to, you could create your entire application in a single file using closures:
+Light Framework is a micro-framework for spinning up API's quickly.  If you wanted to, you could create your entire 
+application in a single file using closures:
 
 Example index.php:
 
 ```
 require_once __DIR__ . '/../vendor/autoload.php';
 
-$app = new Light\App();
+$app = new \Light\App();
 $route = $app->routes;
 
 $route->get('/test', function() {
@@ -99,9 +71,7 @@ $route->get('/test/{slug}', function($slug) {
 ```
 
     
-Spin up a test server:
-    
-    php -S localhost:8080 -t public public/index.php
+Spin up a test server with `php light serve` command.
     
 Visit: http://localhost:8080/test
 
@@ -135,42 +105,46 @@ You'll see the following output:
 
 ### Implementation using controllers
 
-Create a controller in your application that extends Light\Controller
+Putting all your API endpoints in route closures works fine for small APIs.  Though, this can get 
+pretty narly, pretty quickly.  Another way to organize your API code is using _Light Controllers._
+  
+You can create a controller in your application that extends Light\Controller manually, or use the `php light make:controller` command.
+
+Ie:  `php light make:controller Test` will generate the following controller in _app/Controller/Test.php:
 
 ```
-namespace YourApp;
+<?php
 
+namespace App\Controller;
+
+/**
+ * Test Controller
+ *
+ * @packaage App\Controller
+ */
 class Test extends \Light\Controller
 {
+
     /**
-     * A test action
-     *
-     * @return array
+     * Index
      */
     public function index()
     {
-        return ['bar'];
+        return ['hello' => 'world'];
     }
+
 }
 ```
 
-Create a dispatch file.  Ie, index.php:
+Inside _index.php_ add the following route that points to the controller action you just created:
 
 ```
-namespace YourApp;
-
-require_once __DIR__ . '/../vendor/autoload.php';
-
-$app = new Light\App();
-$route = $app->routes;
-
 $route->get('/foo', Test::class . '@index');
 ```
 
-Spin up a test server:
+Use `php light serve` to test out your new API endpoint:
     
-    php -S localhost:8080 -t public public/index.php
-    
+
 Visit: http://localhost:8080/foo
 
 
