@@ -27,6 +27,7 @@ namespace Light;
 /**
  * Class RouteCollector
  *
+ * @author Chris Page <chris@nearbycreative.com>
  * @package Light
  */
 class RouteCollector extends \FastRoute\RouteCollector

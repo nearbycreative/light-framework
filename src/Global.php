@@ -25,6 +25,9 @@
 
 /**
  * Include these methods in the global namespace for convenience
+ *
+ * @author Chris Page <chris@nearbycreative.com>
+ * @package Light
  */
 namespace {
 

@@ -1,0 +1,23 @@
+APP_NAMESPACE={{ APP_NAME|default('App') }}
+APP_ENV={{ APP_ENV|default('local') }}
+APP_KEY={{ APP_KEY }}
+APP_DEBUG=true
+APP_URL=http://localhost
+
+DB_CONNECTION= {{ DB_CONNECTION|default('mysql') }}
+DB_HOST={{ DB_HOST|default('') }}
+DB_PORT={{ DB_PORT|default('3306') }}
+DB_DATABASE={{ DB_DATABASE|default('localhost') }}
+DB_USERNAME={{ DB_USERNAME|default('') }}
+DB_PASSWORD={{ DB_PASSWORD|default('') }}
+
+REDIS_HOST={{ REDIS_HOST|default('127.0.0.1') }}
+REDIS_PASSWORD={{ REDIS_PASSWORD|default('null') }}
+REDIS_PORT={{ REDIS_PORT|default(6379) }}
+
+MAIL_DRIVER={{ MAIL_DRIVER|default('smtp') }}
+MAIL_HOST={{ MAIL_HOST|default('smtp.mailtrap.io') }}
+MAIL_PORT={{ MAIL_PORT|default('2525') }}
+MAIL_USERNAME={{ MAIL_USERNAME|default('null') }}
+MAIL_PASSWORD={{ MAIL_PASSWORD|default('null') }}
+MAIL_ENCRYPTION={{ MAIL_ENCRYPTION|default('null') }}

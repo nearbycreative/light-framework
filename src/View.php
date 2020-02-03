@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 /**
  * MIT License
@@ -22,26 +21,16 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ */
+namespace Light;
+
+/**
+ * Class View
  *
  * @author Chris Page <chris@nearbycreative.com>
  * @package Light
  */
-
-
-/**
- * Require composer autoload based on if we are deving or it's deployed as a package
- */
-foreach ([
-        __DIR__ . '/../../vendor/autoload.php', //development
-        __DIR__ . '/../../../../autoload.php' //standalone
-    ] as $file) {
-
-    if (file_exists($file)) {
-        require_once $file;
-        break;
-    }
+class View
+{
 
 }
-
-$console = new Light\Console();
-$console->run($argv);
