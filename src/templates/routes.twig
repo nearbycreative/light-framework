@@ -23,7 +23,7 @@ $route->get('/', Controller\Welcome::class . '@index');
  * Example redirect
  */
 
-$route->redirect('/', 'https://google.com');
+$route->redirect('/google', 'https://google.com');
 
 /**
  * Example of using a text URL placeholder
@@ -38,7 +38,7 @@ $route->get('/article/{slug}', function($slug) {
 });
 
 /**
- * URL placeholder that matches numbers only
+ * Example URL placeholder that matches numbers only
  */
 $route->get('/user/{id:\d+}', function($id) {
     //Logic to get user details
@@ -50,7 +50,7 @@ $route->get('/user/{id:\d+}', function($id) {
 });
 
 /**
- * Multiple URL placeholders
+ * Example Multiple URL placeholders
  */
 $route->get('/user/{user_id:\d+}/photo/{photo_id:\d+}', function($user_id, $photo_id) {
     //Logic to get user and photo details
@@ -63,6 +63,8 @@ $route->get('/user/{user_id:\d+}/photo/{photo_id:\d+}', function($user_id, $phot
 
 /**
  * Example POST request
+ *
+ * Note, this example won't work out of the box unless you create a User model
  */
 $route->post('/user/{id}', function ($user_id) {
 
@@ -77,24 +79,26 @@ $route->post('/user/{id}', function ($user_id) {
 });
 
 /**
-* Example mapping to multiple HTTP verbs
-*/
-$route->map(['GET','POST'],'/user/{id}', function ($user_id) {
+ * Example mapping to multiple HTTP verbs
+ *
+ * Note, this example won't work out of the box unless you create a Comment model
+ */
+$route->map(['GET','POST'],'/comment/{id}', function ($comment_id) {
 
     $is_updated = false;
 
-    Model\User::find($user_id);
+    $comment = Model\Comment::find($user_id);
 
     if (request()->method() === 'POST') {
-        $user->first_name = request()->input('first_name');
-        $user->save();
+        $comment->body = request()->input('body');
+        $comment->save();
 
         $is_updated = true;
     }
 
     return [
-        'user_id' => $user_id,
+        'comment_id' => $comment_id,
         'is_updated' => $is_updated,
-        'first_name' => $user->first_name,
+        'body' => $comment->body,
     ];
 });

@@ -159,6 +159,7 @@ class Console
             '.env' => $this->twig->render( 'env-example.twig', [
                 'APP_KEY' => base64_encode(sha1(time()))
             ]),
+            'config/routes.php' => $this->twig->render( 'routes.twig'),
             'app/Controller/Welcome.php' => $this->twig->render( 'controller.twig', [
                 'appName' => 'App',
                 'className' => 'Welcome'
