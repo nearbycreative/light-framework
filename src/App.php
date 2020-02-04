@@ -145,46 +145,40 @@ class App
     }
 
     /**
-     * Looks for a matching controller route first
-     * Then looks for a FastRoute, if one is found it overrides the controller route.
-     *
      * This provides /[controller]/[action] paradigm as the default so that
      * you don't have to manually create every route for every controller if
      * you don't want to.
      *
+     * It first looks to see if the URL is a controller path with the 'index' action ommitted
+     * If it doesn't find that, it checks if the last segment in the URI was actually an action
+     * If it finds either, it'll add it to the routes
+     * If it finds none, the returned route error will produce a 404 messaage
+     *
+     * @see App::run()
      * @return array
      */
     private function detectControllerRoute()
     {
-        $path = ucwords(request()->getPathInfo(), '/');
-        $parts = explode('/', ltrim($path, '/'));
+        $path = ucwords(rtrim(request()->getPathInfo(), '/'), '/');
 
-        $classPath = '\\App\\Controller\\';
-        if ($parts[0]) {
-            if (count($parts) === 1) {
-                $classPath .= $parts[0];
-            } elseif (count($parts) >= 2) {
-                $classPath .= implode('\\', $parts);
-            }
-        } else {
-            //it's the root URL, which we default to the Controller\Welcome@index
-            $classPath .= 'Welcome';
-        }
+        $classPath = '\\App\\Controller' . str_replace('/', '\\', $path);
 
-        //Check if this is sub controller index
         if (class_exists($classPath) && method_exists($classPath, 'index')) {
+            //This path is a controller with an index action that wasn't specified in the url
             $handler = $classPath . '@index';
-            $this->routes->any(request()->getPathInfo(), $handler);
         } else {
-            //It's not a sub controller index, the last segment may be an action, lets see if that exists
+            //There was no index found at this controller path, so last segment of the URL may be an action instead
             $parts = explode('\\', $classPath);
             $action = array_pop($parts);
             $classPath = implode('\\', $parts);
 
-            $handler = $classPath . '@' . $action;
-            if (class_exists($classPath) && method_exists($classPath, $action)) {
-                $this->routes->any(request()->getPathInfo(), $handler);
+            if(class_exists($classPath) && method_exists($classPath, $action)) {
+                $handler = $classPath . '@' . strtolower($action);
             }
+        }
+
+        if (isset($handler)) {
+            $this->routes->any(request()->getPathInfo(), $handler);
         }
 
         return $this->getRouteInfo(request()->method(), request()->getRequestUri());
@@ -196,11 +190,9 @@ class App
      * Looks for a route closure first, if one is found, that will take precedent.
      * If a route closure didn't exist, check if there is a controller route.
      *
-     * This provides /[controller]/[action] paradigm as the default so that
-     * you don't have to manually create every route for every controller action if
-     * you don't want to.
-     *
      * This also supports sub controllers.
+     *
+     * @see App::detectControllerRoute()
      */
     public function run()
     {
