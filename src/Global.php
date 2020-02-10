@@ -31,15 +31,40 @@
  */
 namespace {
 
-    use Illuminate\Http\Request;
+    use Light\Request;
+    use Light\App;
 
     /**
      * Get the request object
      *
-     * @return \Illuminate\Http\Request
+     * @return Request
      */
     function request()
     {
-        return Request::createFromGlobals();
+        return Request::singleton();
+    }
+
+    /**
+     * @return \Light\RouteCollector|null
+     */
+    function route()
+    {
+        return App::singleton()->routes;
+
+    }
+
+    /**
+     * Recursive glob
+     *
+     * @param $pattern
+     * @param int $flags
+     * @return array|false
+     */
+    function rglob($pattern, $flags = 0) {
+        $files = glob($pattern, $flags);
+        foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR|GLOB_NOSORT) as $dir) {
+            $files = array_merge($files, \rglob($dir.'/'.basename($pattern), $flags));
+        }
+        return $files;
     }
 }

@@ -25,6 +25,8 @@
 namespace Light;
 
 use Light\Console\Color;
+use Psy\Configuration;
+use Psy\Shell;
 
 /**
  * Class Console
@@ -48,16 +50,31 @@ class Console
     public $commands = [
         'help' => 'Displays this help screen',
         'init' => 'Initialize a new Light application',
-        'make:model' => 'Create a new model skeleton, usage:  light make:model <ModelName>',
-        'make:controller' => 'Create a new controller skeleton, usage:  light make:controller <ControllerName>',
-        'make:migration' => 'Create a new migration',
+        'make:model' => [
+            'options' => '<modelName>',
+            'desc' => 'Create a new model skeleton, usage:  light make:model <ModelName>'
+        ],
+        'make:controller' => [
+            'options' => '<controllerName>',
+            'desc' => 'Create a new controller skeleton, usage:  light make:controller <ControllerName>'
+        ],
+        'make:migration' => [
+            'options' => '<migrationName>',
+            'desc' => 'Create a new migration skeleton, usage:  light make:migration <migrationName>'
+        ],
         'migrate:refresh' => 'Reset and re-run all migrations',
         'migrate:reset' => 'Rollback all database migrations',
         'migrate:rollback' => 'Rollback the last database migration',
         'migrate:status' => 'Show the status of each migration',
-        'route:list' => 'List all registered routes',
-        'serve' => 'Boot a PHP server to test your application in the browser',
-        'tinker' => 'Interact with your application',
+        'route:list' => [
+            'options' => '--table',
+            'desc' => 'List all routes.  Option:  --table'
+        ],
+        'serve' => [
+            'options' => '<host:port>',
+            'desc' => 'Boot a PHP server to test your application in the browser, defaults to localhost:8080'
+        ],
+        'tinker' => 'Interact with your application on the command line',
     ];
 
     /**
@@ -143,8 +160,8 @@ class Console
             'app/Model',
             'app/Controller',
             'config',
-            'database/migrations',
-            'database/seeds',
+            'db/migrations',
+            'db/seeds',
             'resources/views',
             'resources/sass',
             'resources/js',
@@ -159,6 +176,9 @@ class Console
             '.env' => $this->twig->render( 'env-example.twig', [
                 'APP_KEY' => base64_encode(sha1(time()))
             ]),
+            'env-sample' => $this->twig->render( 'env-example.twig', [
+                'APP_KEY' => base64_encode(sha1(time()))
+            ]),
             'config/routes.php' => $this->twig->render( 'routes.twig'),
             'app/Controller/Welcome.php' => $this->twig->render( 'controller.twig', [
                 'appName' => 'App',
@@ -167,6 +187,10 @@ class Console
             'public/index.php' => $this->twig->render( 'index.twig', [
                 'appName' => 'App'
             ]),
+            'app/bootstrap.php' => $this->twig->render( 'bootstrap.php.twig', [
+                'appName' => 'App'
+            ]),
+            'phinx.php' => $this->twig->render( 'phinx.php.twig'),
             'public/.htaccess' => $this->twig->render( 'htaccess.twig'),
         ];
 
@@ -184,18 +208,33 @@ class Console
     {
         echo Color::getColoredString("Light Framework by Nearby Creative (https://nearbycreative.com)\n\n", 'green');
         echo "Usage:\n";
-        echo "\tcommand [options] [arguments]\n\n";
+        echo Color::getColoredString("\tcommand [options] [arguments]\n\n", 'yellow');
         echo "Available commands:\n\n";
         foreach ($this->commands as $command => $description) {
-            echo "\t"
-                . Color::getColoredString(str_pad($command, 25), 'green')
-                . $description . "\n";
+            if (is_array($description)) {
+                echo "\t"
+                    . Color::getColoredString(str_pad($command, 25), 'green')
+                    . Color::getColoredString(str_pad($description['options'], 25), 'yellow')
+                    . $description['desc'] . "\n";
+            } elseif(is_string($description)) {
+                echo "\t"
+                    . Color::getColoredString(str_pad($command, 25), 'green')
+                    . Color::getColoredString(str_pad('', 25), 'yellow')
+                    . $description . "\n";
+            } else {
+                echo "No description";
+            }
         }
         echo "\n";
     }
 
     /**
      * Run command line commands
+     *
+     * @param $argv
+     * @throws \Twig\Error\LoaderError
+     * @throws \Twig\Error\RuntimeError
+     * @throws \Twig\Error\SyntaxError
      */
     public function run($argv)
     {
@@ -209,17 +248,181 @@ class Console
             if ($target) {
                 $this->make($type, $target);
             }
-        } elseif (in_array($command, ['init'])) {
+        } elseif ($command === 'init') {
             $this->init();
-        } elseif (in_array($command, ['serve'])) {
-            $host = $argv[2] ?? 'localhost:8080';
-
-            echo Color::getColoredString("Started Light server on $host\n", 'blue');
-            $serverCmd = "php -S $host -t public public/index.php";
-            echo exec("cd " . getcwd() . " && $serverCmd");
-
+        } elseif ($command === 'serve') {
+            $this->serve($argv[2] ?? null);
+        } elseif ($command === 'tinker') {
+            $this->tinker();
+        } elseif($command === 'route:list') {
+            $this->list_routes($argv);
+        } elseif($command === 'make:migration') {
+            $this->make_migration($argv);
         } else {
             $this->help();
         }
+    }
+
+    /**
+     * Launch a php server to test the application
+     *
+     * @param string $host Hostname, ie:  'localhost' or 'localhost:8080'.  Defaults to 'localhost:8080'
+     */
+    public function serve($host)
+    {
+        if (is_null($host)) {
+            $host = 'localhost:8080';
+        }
+
+        echo Color::getColoredString("Started Light server on $host\n", 'blue');
+        $serverCmd = "php -S $host -t public public/index.php";
+        echo exec("cd " . getcwd() . " && $serverCmd");
+    }
+
+    /**
+     * Adds controller routes to the route map for display in `php light route:list`
+     *
+     * Only public methods are scanned in auto controller routing and unlike
+     * config/routes.php, controller routes map to all HTTP verbs at this time.
+     *
+     * Perhaps a future version will introduce get_[action], post_[action] to controllers.
+     *
+     * @see Console::list_routes()
+     * @param App $app An instance of Light App
+     * @return mixed
+     */
+    public function addControllerRoutes(App $app)
+    {
+        //Bootstrap the app's project directory
+        $loader = require_once 'vendor/autoload.php';
+        $loader->addPsr4('App\\', 'app/');
+
+        //Glob all the controllers
+        $controllers = \rglob('app/Controller/*.php');
+        foreach ($controllers as $controller) {
+            $classPath = str_replace(
+                '.php',
+                '',
+                        str_replace(
+                            '/',
+                            '\\',
+                                    ucwords($controller, '/')
+                        )
+            );
+
+            $instance = new $classPath();
+            $methods = get_class_methods($instance); //Only grabs public methods
+
+            foreach ($methods as $method) {
+                //Ignore magic methods
+                if (! preg_match('/^__\.*/', $method)) {
+                    $uri = str_replace(
+                        'app/controller', '',
+                        str_replace(
+                            '.php',
+                            '',
+                            strtolower($controller)) . '/' . $method
+                    );
+
+                    $app->routes->any($uri, $classPath . '@' . $method);
+                }
+            }
+        }
+
+        return $app->routes->map;
+    }
+
+    /**
+     * List all routes available
+     *
+     * This includes both routes configured by config/routes.php as well as all the
+     * public methods in app/controllers
+     *
+     * @see Console::addControllerRoutes()
+     */
+    public function list_routes($argv)
+    {
+        require_once 'Global.php';
+
+        $routeFile = 'config/routes.php';
+        $app = new \Light\App($routeFile); //This call maps config/routes.php
+
+        if (isset($app->routes) && isset($app->routes->map) && is_array($app->routes->map) && count($app->routes->map)) {
+
+            $map = $this->addControllerRoutes($app); //Controller routes are added
+
+            ksort($map); //Sort routes by URI
+
+
+            if (isset($argv[2]) && $argv[2] === '--table') {
+                //Display a pretty table of the route maps
+                foreach ($map as $route => $methods) {
+                    echo "\n" . Color::getColoredString($route, 'blue') . "\n";
+                    echo '+' . str_pad('', '71', '-') . "+\n";
+                    echo "| \t" . Color::getColoredString(str_pad('METHOD', 10, ' '), 'purple') . ' | ' . Color::getColoredString(str_pad('ACTION', '50', ' '), 'purple') . " |\n";
+
+                    foreach ($methods as $method => $handler) {
+                        if ($handler instanceof \Closure) {
+                            $handler_name = 'Route Closure, see ' . $routeFile;
+                        } else {
+                            $handler_name = $handler;
+                        }
+                        echo '+' . str_pad('', '71', '-') . "+\n";
+                        echo "| \t" . Color::getColoredString(str_pad($method, 10, ' '), 'yellow') . ' | ' . str_pad($handler_name, '50', ' ') . " |\n";
+                    }
+                    echo '+' . str_pad('', '71', '-') . "+\n";
+                }
+            } else {
+                foreach ($map as $route => $methods) {
+                    echo "\n" . Color::getColoredString($route, 'blue') . "\n";
+                    echo "\t" . Color::getColoredString(str_pad('METHOD', 10, ' '), 'purple') . Color::getColoredString(str_pad('ACTION', '50', ' '), 'purple') . "\n";
+
+                    foreach ($methods as $method => $handler) {
+                        if ($handler instanceof \Closure) {
+                            $handler_name = 'Route Closure, see ' . $routeFile;
+                        } else {
+                            $handler_name = $handler;
+                        }
+
+                        echo "\t" . Color::getColoredString(str_pad($method, 10, ' '), 'yellow') . str_pad($handler_name, '50', ' ') . "\n";
+                    }
+
+                }
+            }
+        }
+    }
+
+    /**
+     * Helper wrapper to the phinx command to generate a migration
+     */
+    public function make_migration($argv)
+    {
+        echo exec("./vendor/bin/phinx create " . $argv[2]) . "\n";
+    }
+
+    /**
+     * Provides an interactive shell for tinkering with an app
+     *
+     * <code>
+     * php light tinker
+     *
+     * light> $app = \Light\App::singleton()
+     * light> $app->run('get', '/user/1')
+     * </code>
+     */
+    public function tinker()
+    {
+        $config = new Configuration([
+            'updateCheck' => 'never',
+            'usePcntl' => false,
+            'prompt' => Color::getColoredString('light> ', 'blue'),
+            'startupMessage' => sprintf('<info>%s</info>', "Tinker with your app interactively!\nTry:\n\t\$app = Light\App::singleton()\n\t\$app->run('get','/')\n\n"),
+            'defaultIncludes' => [
+                'app/bootstrap.php'
+            ]
+        ]);
+
+        $shell = new Shell($config);
+        $shell->run();
     }
 }

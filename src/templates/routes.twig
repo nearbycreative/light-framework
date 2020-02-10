@@ -103,3 +103,19 @@ $route->map(['GET','POST'],'/comment/{id}', function ($comment_id) {
         'body' => $comment->body,
     ];
 });
+
+/**
+ * Example of mapping any HTTP method to a URI
+ */
+$route->any('/test/any', function () {
+
+    if (request()->method() === 'POST') {
+        //...
+    } elseif(request()->method() === 'OPTIONS') {
+        //...
+    }
+
+    return [
+        'requested_with' => 'ANY',
+    ];
+});

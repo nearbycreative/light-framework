@@ -33,6 +33,13 @@ namespace Light;
 class RouteCollector extends \FastRoute\RouteCollector
 {
     /**
+     * Holds all the route mappings for the `light route:list` command
+     *
+     * @var array
+     */
+    public $map = [];
+
+    /**
      * RouteCollector constructor.
      */
     public function __construct()
@@ -100,6 +107,107 @@ class RouteCollector extends \FastRoute\RouteCollector
     }
 
     /**
+     * Adds a GET route to the collection
+     *
+     * This is simply an alias of $this->addRoute('GET', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function get($route, $handler)
+    {
+        $this->addRoute('GET', $route, $handler);
+    }
+
+    /**
+     * Adds a POST route to the collection
+     *
+     * This is simply an alias of $this->addRoute('POST', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function post($route, $handler)
+    {
+        $this->addRoute('POST', $route, $handler);
+    }
+
+    /**
+     * Adds a PUT route to the collection
+     *
+     * This is simply an alias of $this->addRoute('PUT', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function put($route, $handler)
+    {
+        $this->addRoute('PUT', $route, $handler);
+    }
+
+    /**
+     * Adds a DELETE route to the collection
+     *
+     * This is simply an alias of $this->addRoute('DELETE', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function delete($route, $handler)
+    {
+        $this->addRoute('DELETE', $route, $handler);
+    }
+
+    /**
+     * Adds a PATCH route to the collection
+     *
+     * This is simply an alias of $this->addRoute('PATCH', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function patch($route, $handler)
+    {
+        $this->addRoute('PATCH', $route, $handler);
+    }
+
+    /**
+     * Adds a HEAD route to the collection
+     *
+     * This is simply an alias of $this->addRoute('HEAD', $route, $handler)
+     *
+     * @param string $route
+     * @param mixed  $handler
+     */
+    public function head($route, $handler)
+    {
+        $this->addRoute('HEAD', $route, $handler);
+    }
+
+    /**
+     * @param string|string[] $method
+     * @param string $route
+     * @param mixed $handler
+     */
+    public function addRoute($method, $route, $handler)
+    {
+        $this->updateRouteMap($method, $route, $handler);
+
+        parent::addRoute($method, $route, $handler);
+    }
+
+    /**
+     * Updates the route map
+     *
+     * @param $method
+     * @param $route
+     */
+    public function updateRouteMap($method, $route, $handler)
+    {
+        $this->map[$route][$method] = $handler;
+    }
+
+    /**
      * Redirect
      *
      * @param $route
@@ -115,5 +223,10 @@ class RouteCollector extends \FastRoute\RouteCollector
         });
 
         return $this;
+    }
+
+    public function routes()
+    {
+        return $this->dataGenerator;
     }
 }

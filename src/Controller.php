@@ -38,17 +38,15 @@ class Controller
     public $app = null;
 
     /**
-     * @var \Illuminate\Http\Request|null
+     * @var Request|null
      */
     public $request = null;
 
     /**
      * Controller constructor.
-     * @param App $app
      */
-    public function __construct(App $app)
+    public function __construct()
     {
-        $this->app = $app;
-        $this->request = request();
+        $this->request = \request();
     }
 }

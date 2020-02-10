@@ -28,10 +28,9 @@ use Illuminate\Database\Capsule\Manager as Capsule;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Schema\Builder;
 
-/**
- * Include helper methods
- */
-require_once 'Global.php';
+
+define('APP_PATH', realpath(__DIR__ . '/../../../'));
+
 
 /**
  * Class App
@@ -51,6 +50,8 @@ class App
     private $response_content_type = 'application/json';
 
     /**
+     * Holds all of the routes
+     *
      * @var RouteCollector|null
      */
     public $routes = null;
@@ -61,15 +62,54 @@ class App
     public static $_connection = null;
 
     /**
+     * @var App|null
+     */
+    public static $_instance = null;
+
+    /**
      * Dispatch constructor.
      *
+     * @param string $routes_path
      * @param string $response_content_type
      */
-    public function __construct($response_content_type = 'application/json')
+    public function __construct($routes_path = 'config/routes.php', $response_content_type = 'application/json')
     {
         $this->setResponseContentType($response_content_type);
 
+        self::$_instance = $this;
+
         $this->routes = new RouteCollector();
+
+        if ($routes_path) {
+            $route = $this->routes;
+            require_once $routes_path;
+        }
+    }
+
+    /**
+     * Return an app instance
+     *
+     * @param string $routes_path
+     * @param string $response_content_type
+     * @return App|null
+     */
+    public static function singleton($routes_path = 'config/routes.php', $response_content_type = 'application/json')
+    {
+        if (is_null(self::$_instance)) {
+            self::$_instance = new App($routes_path, $response_content_type);
+        }
+
+        return self::$_instance;
+    }
+
+    /**
+     * Includes a global helper methods
+     *
+     * @return void
+     */
+    public static function initGlobals()
+    {
+        require_once 'Global.php';
     }
 
     /**
@@ -124,10 +164,13 @@ class App
      *
      * @see Dispatch::__construct()
      * @param string $contentType Default is set to 'application/json'
+     * @return $this
      */
     public function setResponseContentType($contentType)
     {
         $this->response_content_type = $contentType;
+
+        return $this;
     }
 
     /**
@@ -154,12 +197,16 @@ class App
      * If it finds either, it'll add it to the routes
      * If it finds none, the returned route error will produce a 404 messaage
      *
+     *
+     * @param $method
+     * @param $uri
+     * @param $pathInfo
      * @see App::run()
      * @return array
      */
-    private function detectControllerRoute()
+    private function detectControllerRoute($method, $uri, $pathInfo)
     {
-        $path = ucwords(rtrim(request()->getPathInfo(), '/'), '/');
+        $path = ucwords(rtrim($pathInfo, '/'), '/');
 
         $classPath = '\\App\\Controller' . str_replace('/', '\\', $path);
 
@@ -178,10 +225,10 @@ class App
         }
 
         if (isset($handler)) {
-            $this->routes->any(request()->getPathInfo(), $handler);
+            $this->routes->any($pathInfo, $handler);
         }
 
-        return $this->getRouteInfo(request()->method(), request()->getRequestUri());
+        return $this->getRouteInfo($method, $uri);
     }
 
     /**
@@ -192,14 +239,23 @@ class App
      *
      * This also supports sub controllers.
      *
+     * Optional parameters $method and $uri can be used to force the HTTP verb and URI instead of detecting them from the request.
+     *
      * @see App::detectControllerRoute()
+     *
+     * @param null $method [optional] Can be used to force the method type, otherwise it's detected from the request
+     * @param null $uri [optional] Can be used to force the $uri, otherwise it's detected from the request
+     * @return array|string|null
      */
-    public function run()
+    public function run($method = null, $uri = null)
     {
-        $routeInfo = $this->getRouteInfo(request()->method(), request()->getRequestUri());
+        $method = $method ? strtoupper($method) : request()->method();
+        $uri = $uri ? $uri : request()->getRequestUri();
+
+        $routeInfo = $this->getRouteInfo($method, $uri);
 
         if ($routeInfo[0] === \FastRoute\Dispatcher::NOT_FOUND) {
-            $routeInfo = $this->detectControllerRoute();
+            $routeInfo = $this->detectControllerRoute($method, $uri, request()->getPathInfo());
         }
 
         if($routeInfo[0] === \FastRoute\Dispatcher::FOUND) {
@@ -209,7 +265,8 @@ class App
             if (is_string($handler)) {
                 list($class, $method) = explode('@', $handler);
 
-                $instance = new $class($this);
+                $instance = new $class();
+                $instance->app = $this;
                 $handler = [$instance, $method];
             }
 
@@ -243,17 +300,23 @@ class App
             ];
         }
 
+        //Force no cache
         header('Content-type:  ' . $this->response_content_type);
         header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
         header("Expires: Sat, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+
+        //Make sure the response code is set in the header
         http_response_code($response['code']);
 
         if ($this->response_content_type === 'application/json') {
 
             echo json_encode($response, JSON_PRETTY_PRINT);
+        } elseif ($this->response_content_type === 'application/xml') {
+            echo xmlrpc_encode($response);
         } else {
             echo $response;
         }
 
+        return $response;
     }
 }

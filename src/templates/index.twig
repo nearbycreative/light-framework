@@ -1,12 +1,8 @@
 <?php
 namespace {{ appName }};
 
-$loader = require_once __DIR__ . '/../vendor/autoload.php';
-$loader->addPsr4('App\\', __DIR__ . '/../app/');
+require_once __DIR__ . '/../app/bootstrap.php';
 
-$app = new \Light\App();
-$route = $app->routes;
-
-require_once(__DIR__ . '/../config/routes.php');
+$app = new \Light\App(__DIR__ . '/../config/routes.php');
 
 $app->run();
