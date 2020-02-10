@@ -1,0 +1,10 @@
+<?php
+
+$loader = require_once __DIR__ . '/../vendor/autoload.php';
+$loader->addPsr4('App\\', __DIR__ . '/../app/');
+
+/**
+ * Init global helper methods
+ */
+\Light\App::initGlobals();
+

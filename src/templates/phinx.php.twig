@@ -1,0 +1,30 @@
+<?php
+/**
+ * Phinx config for managing database migrations
+ *
+ * The light command line utility provides a wrapper to common phinx commands for convenience, or you can
+ * use phinx directly by invoking ./vendor/bin/phinx
+ */
+
+require_once __DIR__ . '/app/bootstrap.php';
+
+return [
+    'paths' => [
+        'migrations' => 'db/migrations',
+        'seeds' => 'db/seeds',
+    ],
+    'environments' => [
+        "default_migration_table" => "migrations",
+        'default_database' => 'default',
+        'default' => [
+            "adapter" => \Light\Config::env('DB_CONNECTION'),
+            "name" => \Light\Config::env('DB_DATABASE'),
+            "host" => \Light\Config::env('DB_HOST'),
+            "user" => \Light\Config::env('DB_USERNAME'),
+            "pass" => \Light\Config::env('DB_PASSWORD'),
+            "port" => \Light\Config::env('DB_PORT'),
+            "charset" => "utf8",
+            "collation" => "utf8_unicode_ci"
+        ]
+    ]
+];
