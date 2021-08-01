@@ -243,19 +243,21 @@ class App
      *
      * @see App::detectControllerRoute()
      *
-     * @param null $method [optional] Can be used to force the method type, otherwise it's detected from the request
-     * @param null $uri [optional] Can be used to force the $uri, otherwise it's detected from the request
+     * @param null|string $method [optional] Can be used to force the method type, otherwise it's detected from the request
+     * @param null|string $uri [optional] Can be used to force the $uri, otherwise it's detected from the request
+     * @param null|\Illuminate\Http\Request $request [optional] Can be used to pass in your own request object, otherwise will call the illuminate request() method
      * @return array|string|null
      */
-    public function run($method = null, $uri = null)
+    public function run($method = null, $uri = null, $request = null)
     {
-        $method = $method ? strtoupper($method) : request()->method();
-        $uri = $uri ? $uri : request()->getRequestUri();
+        $request = $request ?? request();
+        $method = $method ? strtoupper($method) : $request->method();
+        $uri = $uri ? $uri : $request->getRequestUri();
 
         $routeInfo = $this->getRouteInfo($method, $uri);
 
         if ($routeInfo[0] === \FastRoute\Dispatcher::NOT_FOUND) {
-            $routeInfo = $this->detectControllerRoute($method, $uri, request()->getPathInfo());
+            $routeInfo = $this->detectControllerRoute($method, $uri, $request->getPathInfo());
         }
 
         if($routeInfo[0] === \FastRoute\Dispatcher::FOUND) {
